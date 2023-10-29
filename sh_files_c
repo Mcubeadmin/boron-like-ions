@@ -1,0 +1,122 @@
+#!/bin/sh
+#boron-like five electron reference
+set -x
+#   The Configuration State Function (CSF) is the simplest approximation
+#   of a many-electron wavefunction being both antisymmetric and an 
+#   eigenfunction of J^2 and J_z. The configurations are generated and
+#   split into separate files corresponding to principle quantum number n.
+
+#   It is desirable to optimize all orbitals simultaneously, referred to as
+#   the "full Variational" (FV) approach. However, due to numerical
+#   convergence issues, the MCDHF method often employs a layer-by-layer
+#   (LBL) strategy in which the newly introduced orbitals for the layer 
+#   considered are optimized consisting of one orbital per angular 
+#   momentum symmertry. This approach reduces computational time as the
+#   computation time for each new layer is shorter than the FV approach. 
+  
+
+#  1.  Generate CSF expansions
+#      1.1 MR for 2s(2)2p, 2p(3) and 2s(2)3p(1)
+#   The reference for the three odd parity states of 2s(2)2p, 2p(3) 
+#   and 2s(2)3p are generated here with the highest n = 3 and 
+#   highest angular momentum, J = 3/2 and allowing no excitations.
+
+rcsfgenerate <<EOF1
+*
+1
+1s(2,i)2s(2,i)2p(1,i)
+1s(2,i)2p(3,i)
+
+2s,2p
+1,5
+0
+n
+EOF1
+
+cp rcsf.out odd2.c
+
+#        1.2 SD-MR for n=6
+#   Considering the inclusion of correlation effects, single-double (SD) 
+#   excitations are allowed from the reference to the active set 
+#   up to n = 6 (Complete Active Space calculations).
+rcsfgenerate <<EOF3
+*
+0
+1s(2,*)2s(2,*)2p(1,*)
+1s(2,*)2p(3,*) 
+
+6s,6p,6d,6f,6g,6h
+1,7
+2
+n
+EOF3
+
+cp rcsf.out odd.c
+
+#       Split into odd4.c, odd5.c, odd6.c
+#   The calculations are simplified by generating lists for large active
+#   sets and then splitting them based on the principle quantum number n.
+rcsfsplit <<EOF5
+odd
+4
+3s,3p,3d
+3
+4s,4p,4d,4f
+4
+5s,5p,5d,5f,5g
+5
+6s,6p,6d,6f,6g,6h
+6
+EOF5
+
+##########################################
+
+#  2.  Generate CSF expansions
+#      2.1 for 2s2p(2), 2s(2)3s(1) and 2s(2)3d(1)
+#   The reference for the three even parity states of 2s2p(2), 2s(2)3s
+#   and 2s(2)3d are generated here with the highest n = 3  and 
+#   highest angular momentum, J = 5/2 and allowing no excitations.
+rcsfgenerate <<EOF1
+*
+0
+1s(2,i)2s(1,i)2p(2,i)
+
+2s,2p
+1,5
+0
+n
+EOF1
+
+cp rcsf.out even2.c
+
+#        2.2 SD for n=6
+#   Similar Complete Active Space calculation.
+rcsfgenerate <<EOF3
+*
+0
+1s(2,*)2s(1,*)2p(2,*)
+
+6s,6p,6d,6f,6g,6h
+1,7
+2
+n
+EOF3
+
+cp rcsf.out even.c
+
+#        Split into even4.c, even5.c, even6.c
+#   Splitting of CSFs list for simplification of calculations.
+rcsfsplit <<EOF5
+even
+4
+3s,3p,3d
+3
+4s,4p,4d,4f
+4
+5s,5p,5d,5f,5g
+5
+6s,6p,6d,6f,6g,6h
+6
+EOF5
+
+
